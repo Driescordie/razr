@@ -1,0 +1,388 @@
+
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<link rel="icon" href="img/favicon.ico" type="image/x-icon" />
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Razr Barbershop</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
+
+  <!-- AOS CSS -->
+  <link href="https://unpkg.com/aos@next/dist/aos.css" rel="stylesheet"/>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    html, body {
+      height: 100%;
+    }
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      font-family: 'Quicksand', sans-serif;
+      color: #fff;
+      background: #0a0a0a;
+      overflow-x: hidden;
+    }
+
+    /* NAVIGATIE */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 110px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 2rem;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(8px);
+      z-index: 100;
+    }
+
+    .nav-inner {
+      position: relative;
+      width: 100%;
+      max-width: 1200px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    .logo img {
+      height: 100px;
+      object-fit: contain;
+    }
+
+    .nav-toggle {
+      display: none;
+    }
+    .nav-toggle-label {
+      display: none;
+      margin-left: auto;
+      cursor: pointer;
+      width: 30px;
+      height: 24px;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .nav-toggle-label span,
+    .nav-toggle-label span::before,
+    .nav-toggle-label span::after {
+      display: block;
+      background: #fff;
+      height: 3px;
+      border-radius: 2px;
+      position: relative;
+      transition: background 0.3s ease;
+    }
+    .nav-toggle-label span::before,
+    .nav-toggle-label span::after {
+      content: '';
+      width: 100%;
+      position: absolute;
+    }
+    .nav-toggle-label span::before { top: -8px; }
+    .nav-toggle-label span::after  { top: 8px; }
+
+    ul.nav-menu {
+      margin-left: auto;
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+    ul.nav-menu li a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: 600;
+      text-transform: uppercase;
+      position: relative;
+    }
+    ul.nav-menu li a::after {
+      content: '';
+      position: absolute;
+      bottom: -4px; left: 0;
+      width: 100%; height: 2px;
+      background: #ff0055;
+      transform: scaleX(0);
+      transition: transform 0.3s ease;
+    }
+    ul.nav-menu li a:hover::after {
+      transform: scaleX(1);
+    }
+
+    /* HEADER MET JPG-ACHTERGROND */
+    main {
+      flex: 1;
+      margin-top: 110px;
+    }
+    header {
+      position: relative;
+      height: calc(100vh - 110px);
+      background: url('img/barbershop.png') center center / cover no-repeat;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    header::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: linear-gradient(
+        to bottom,
+        rgba(0,0,0,0.6),
+        rgba(0,0,0,0.9)
+      );
+      z-index: 1;
+    }
+
+    /* FLUO-GROENE CTA-KNOP */
+    .cta-btn {
+      position: relative;
+      z-index: 2;
+      display: inline-block;
+      background: linear-gradient(90deg, #39ff14, #0fff5c);
+      color: #000;
+      text-decoration: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 30px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .cta-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 15px rgba(63, 255, 32, 0.5);
+    }
+
+    /* DIENSTEN & CARDS */
+    section#services,
+    section#pricing {
+      padding: 4rem 2rem;
+      text-align: center;
+    }
+    .cards {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 2rem;
+    }
+    .card {
+      background: rgba(255,255,255,0.05);
+      border-radius: 12px;
+      padding: 2rem;
+      width: 280px;
+      backdrop-filter: blur(6px);
+      transition: transform 0.3s;
+    }
+    .card:hover {
+      transform: translateY(-8px);
+    }
+
+    /* PRIJSSTIJL */
+    .price {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #39ff14;
+      margin-top: 1rem;
+      letter-spacing: 1px;
+    }
+
+    /* CONTACTSECTIE */
+    section#contact {
+      padding: 4rem 2rem;
+      text-align: center;
+    }
+    section#contact p {
+      color: #ccc;
+    }
+
+    /* FOOTER ONDERAAN */
+    footer {
+      background: #111;
+      color: #ccc;
+      text-align: center;
+      padding: 1rem 2rem;
+      font-size: 0.9rem;
+      margin-top: auto;
+    }
+    footer a {
+      color: #ccc;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    footer a:hover {
+      color: #fff;
+      text-decoration: underline;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      nav {
+        height: 90px;
+        padding: 0 1.5rem;
+      }
+      main {
+        margin-top: 90px;
+      }
+      .logo img {
+        height: 80px;
+      }
+      .nav-toggle-label {
+        display: flex;
+      }
+      ul.nav-menu {
+        position: absolute;
+        top: 90px; left: 0;
+        width: 100%;
+        background: rgba(0,0,0,0.9);
+        flex-direction: column;
+        align-items: center;
+        overflow: hidden;
+        max-height: 0;
+        transition: max-height 0.3s ease;
+      }
+      .nav-toggle:checked ~ .nav-menu {
+        max-height: 240px;
+      }
+      header {
+        height: 300px;
+      }
+      .cta-btn {
+        padding: 0.6rem 1.2rem;
+        font-size: 0.9rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      nav {
+        height: 80px;
+        padding: 0 1rem;
+      }
+      main {
+        margin-top: 80px;
+      }
+      .logo img {
+        height: 70px;
+      }
+      header {
+        height: 200px;
+      }
+      .cta-btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <nav data-aos="fade-down">
+    <div class="nav-inner">
+      <div class="logo">
+        <img src="img/logo.png" alt="Razr Barbershop Logo">
+      </div>
+
+      <input type="checkbox" id="nav-toggle" class="nav-toggle">
+      <label for="nav-toggle" class="nav-toggle-label"><span></span></label>
+
+      <ul class="nav-menu">
+        <li><a href="#home">Home</a></li>
+        <li><a href="portfolio.html">Portfolio</a></li>
+        <li><a href="contact.html">Contact</a></li>
+        <li><a href="afspraak.html">Afspraak maken</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main>
+    <header id="home" data-aos="fade-down">
+      <a href="afspraak.html"
+         class="cta-btn"
+         data-aos="zoom-in"
+         data-aos-delay="300">
+        Maak nu afspraak
+      </a>
+    </header>
+
+    <section id="services">
+      <h2 data-aos="fade-up">Wat bieden wij aan?</h2>
+      <div class="cards">
+        <div class="card" data-aos="flip-left" data-aos-delay="100">
+          <h3>Classic Cuts</h3>
+          <p>Retro & modern samengebracht, altijd strak.</p>
+        </div>
+        <div class="card" data-aos="flip-left" data-aos-delay="200">
+          <h3>Beard Trimming</h3>
+          <p>Traditie ontmoet luxe in elke scheerbeurt.</p>
+        </div>
+        <div class="card" data-aos="flip-left" data-aos-delay="300">
+          <h3>Fade Mastery</h3>
+          <p>Naadloze overgangen, elk detail telt.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="pricing" data-aos="fade-up">
+      <h2 data-aos="fade-up">Prijslijst</h2>
+      <div class="cards">
+        <div class="card" data-aos="flip-left" data-aos-delay="100">
+          <h3>Classic Cut</h3>
+          <p>Haircut & Wash</p>
+          <p class="price">€25</p>
+        </div>
+        <div class="card" data-aos="flip-left" data-aos-delay="200">
+          <h3>Trimming And Cut</h3>
+          <p>Haircut & Beard</p>
+          <p class="price">€35</p>
+        </div>
+        <div class="card" data-aos="flip-left" data-aos-delay="300">
+          <h3>Trimming Only</h3>
+          <p>Beard</p>
+          <p class="price">€15</p>
+        </div>
+      </div>
+    </section>
+
+<section id="contact">
+  <h2 data-aos="fade-up">Contact & Boekingen</h2>
+  <p data-aos="fade-up" data-aos-delay="200">
+    📍 Molsesteenweg 159, 2490 Balen<br>
+    📞 +32470305661<br>
+    📧 Razrbarbershop@hotmail.com<br>
+    <a href="https://www.instagram.com/razr_barbershop" target="_blank" rel="noopener noreferrer" style="color:#ccc; font-weight:600; text-decoration:underline;">📷 Instagram</a>
+  </p>
+</section>
+  </main>
+
+  <footer data-aos="fade-up">
+    &copy; 2025 RAZR Barbershop — Cut different 💈 Build by
+    <a href="https://cortech.be" target="_blank" rel="noopener noreferrer">cortech</a>
+  </footer>
+
+  <!-- AOS JS -->
+  <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      AOS.init({ duration: 800, once: true });
+    });
+  </script>
+</body>
+</html>
