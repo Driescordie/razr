@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Galerij - Razr Barbershop</title>
+  <link rel="icon" href="img/favicon.ico" type="image/x-icon" />
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
+  <!-- AOS CSS -->
+  <link href="https://unpkg.com/aos@next/dist/aos.css" rel="stylesheet"/>
+  <!-- Lightbox CSS -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/css/lightbox.min.css" rel="stylesheet"/>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    html, body {
+      height: 100%;
+    }
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      font-family: 'Quicksand', sans-serif;
+      background: #0a0a0a;
+      color: #fff;
+      overflow-x: hidden;
+    }
+
+    /* NAVIGATIE */
+    nav {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 110px;
+      display: flex;
+      align-items: center;
+      justify-content: center;    /* centreert .nav-inner */
+      padding: 0 2rem;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(8px);
+      z-index: 100;
+    }
+    .nav-inner {
+      position: relative;         /* voor absolute positionering van logo */
+      width: 100%;
+      max-width: 1200px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    .logo img {
+      height: 100px;
+      object-fit: contain;
+    }
+
+    .nav-toggle {
+      display: none;
+    }
+    .nav-toggle-label {
+      display: none;
+      margin-left: auto;
+      cursor: pointer;
+      width: 30px; height: 24px;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .nav-toggle-label span,
+    .nav-toggle-label span::before,
+    .nav-toggle-label span::after {
+      display: block;
+      background: #fff;
+      height: 3px;
+      border-radius: 2px;
+      position: relative;
+      transition: background 0.3s ease;
+    }
+    .nav-toggle-label span::before,
+    .nav-toggle-label span::after {
+      content: '';
+      width: 100%;
+      position: absolute;
+    }
+    .nav-toggle-label span::before { top: -8px; }
+    .nav-toggle-label span::after  { top: 8px; }
+
+    ul.nav-menu {
+      margin-left: auto;
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+    ul.nav-menu li a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: 600;
+      text-transform: uppercase;
+      position: relative;
+      white-space: nowrap;
+    }
+    ul.nav-menu li a::after {
+      content: '';
+      position: absolute;
+      bottom: -4px; left: 0;
+      width: 100%; height: 2px;
+      background: #ff0055;
+      transform: scaleX(0);
+      transition: transform 0.3s ease;
+    }
+    ul.nav-menu li a:hover::after {
+      transform: scaleX(1);
+    }
+
+    main {
+      flex: 1;
+      padding-top: 110px;
+    }
+
+    header {
+      text-align: center;
+      padding: 2rem;
+    }
+    header h1 {
+      font-family: 'Anton', sans-serif;
+      font-size: 2.5rem;
+    }
+    header p {
+      margin-top: 1rem;
+    }
+
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px,1fr));
+      gap: 1.5rem;
+      padding: 2rem;
+    }
+    .gallery-grid a img {
+      width: 100%;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+      transition: transform 0.3s ease;
+    }
+    .gallery-grid a:hover img {
+      transform: scale(1.05);
+    }
+
+    footer {
+      background: #111;
+      color: #ccc;
+      text-align: center;
+      padding: 1rem;
+      font-size: 0.9rem;
+      margin-top: auto;
+    }
+    footer a {
+      color: #ccc;
+      font-weight: 600;
+      text-decoration: none;
+    }
+    footer a:hover {
+      color: #fff;
+      text-decoration: underline;
+    }
+
+    /* RESPONSIVE MENU */
+    @media (max-width: 768px) {
+      nav {
+        height: 90px;
+        padding: 0 1.5rem;
+      }
+      main {
+        padding-top: 90px;
+      }
+      .logo img {
+        height: 80px;
+      }
+      .nav-toggle-label {
+        display: flex;
+      }
+      ul.nav-menu {
+        position: absolute;
+        top: 90px; left: 0;
+        width: 100%;
+        background: rgba(0,0,0,0.9);
+        flex-direction: column;
+        align-items: center;
+        overflow: hidden;
+        max-height: 0;
+        transition: max-height 0.3s ease;
+      }
+      .nav-toggle:checked ~ ul.nav-menu {
+        max-height: 240px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      nav {
+        height: 80px;
+        padding: 0 1rem;
+      }
+      main {
+        padding-top: 80px;
+      }
+      .logo img {
+        height: 70px;
+      }
+      ul.nav-menu {
+        top: 80px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <nav data-aos="fade-down">
+    <div class="nav-inner">
+      <div class="logo">
+        <img src="img/logo.png" alt="Razr Barbershop Logo">
+      </div>
+
+      <input type="checkbox" id="nav-toggle" class="nav-toggle">
+      <label for="nav-toggle" class="nav-toggle-label"><span></span></label>
+
+      <ul class="nav-menu">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="portfolio.html">Portfolio</a></li>
+        <li><a href="contact.html">Contact</a></li>
+        <li><a href="afspraak.html">Afspraak maken</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main>
+    <header data-aos="fade-up">
+      <h1>Onze klanten, onze kunst</h1>
+      <p>Een blik op wat we doen stijl, skills & passie.</p>
+    </header>
+
+    <div class="gallery-grid" data-aos="fade-up" data-aos-delay="200">
+      <a href="img/klant1.jpg" data-lightbox="galerij" data-title="Classic Cut">
+        <img src="img/klant1.jpg" alt="Classic Cut">
+      </a>
+      <a href="img/klant2.jpg" data-lightbox="galerij" data-title="Fade Mastery">
+        <img src="img/klant2.jpg" alt="Fade Mastery">
+      </a>
+      <a href="img/klant3.jpg" data-lightbox="galerij" data-title="Hot Towel Shave">
+        <img src="img/klant3.jpg" alt="Hot Towel Shave">
+      </a>
+      <a href="img/klant4.jpg" data-lightbox="galerij" data-title="Creative Style">
+        <img src="img/klant4.jpg" alt="Creative Style">
+      </a>
+    </div>
+  </main>
+
+  <footer data-aos="fade-up">
+    &copy; 2025 RAZR Barbershop — Cut different 💈 Build by
+    <a href="https://cortech.be" target="_blank" rel="noopener noreferrer">cortech</a>
+  </footer>
+
+  <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/js/lightbox.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      AOS.init({ duration: 800, once: true });
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    });
+  </script>
+</body>
+</html>
