@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Galerij — Razr Barbershop</title>
+  <link rel="icon" href="img/favicon.ico" type="image/x-icon" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;600;700&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://unpkg.com/aos@next/dist/aos.css" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/css/lightbox.min.css" rel="stylesheet"/>
+
+  <style>
+    :root {
+      --green: #39ff14;
+      --dark: #080808;
+      --dark2: #0f0f0f;
+      --dark3: #1a1a1a;
+      --grey: #888;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Barlow', sans-serif;
+      background: var(--dark); color: #fff;
+      overflow-x: hidden; min-height: 100vh;
+      display: flex; flex-direction: column;
+    }
+    body { cursor: none; }
+    #cursor {
+      width: 12px; height: 12px;
+      background: var(--green); border-radius: 50%;
+      position: fixed; pointer-events: none;
+      z-index: 9999; transform: translate(-50%, -50%);
+      transition: width 0.2s, height 0.2s;
+      mix-blend-mode: exclusion;
+    }
+    #cursor.big { width: 40px; height: 40px; }
+
+    nav {
+      position: fixed; top: 0; left: 0;
+      width: 100%; height: 90px;
+      display: flex; align-items: center;
+      padding: 0 3rem;
+      background: rgba(8,8,8,0.9);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(57,255,20,0.08);
+      z-index: 100;
+    }
+    .nav-inner {
+      position: relative; width: 100%;
+      max-width: 1400px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo img { height: 65px; object-fit: contain; }
+    .logo { position: absolute; left: 50%; transform: translateX(-50%); }
+    .nav-toggle { display: none; }
+    .nav-toggle-label {
+      display: none; margin-left: auto;
+      cursor: pointer; width: 30px; height: 20px;
+      flex-direction: column; justify-content: space-between;
+    }
+    .nav-toggle-label span,
+    .nav-toggle-label span::before,
+    .nav-toggle-label span::after {
+      display: block; background: #fff;
+      height: 2px; border-radius: 2px;
+      position: relative; transition: all 0.3s;
+    }
+    .nav-toggle-label span::before,
+    .nav-toggle-label span::after { content: ''; width: 100%; position: absolute; }
+    .nav-toggle-label span::before { top: -8px; }
+    .nav-toggle-label span::after { top: 8px; }
+    ul.nav-menu { display: flex; gap: 2.5rem; list-style: none; }
+    ul.nav-menu li a {
+      color: #aaa; text-decoration: none;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 600; font-size: 0.85rem;
+      text-transform: uppercase; letter-spacing: 2px;
+      position: relative; transition: color 0.3s;
+    }
+    ul.nav-menu li a::after {
+      content: ''; position: absolute;
+      bottom: -4px; left: 0; width: 0; height: 1px;
+      background: var(--green); transition: width 0.3s;
+    }
+    ul.nav-menu li a:hover { color: #fff; }
+    ul.nav-menu li a:hover::after { width: 100%; }
+
+    main { flex: 1; padding-top: 90px; }
+
+    .portfolio-hero {
+      padding: 5rem 3rem 3rem;
+      max-width: 1400px; margin: 0 auto;
+      display: grid; grid-template-columns: 1fr auto;
+      align-items: end; gap: 2rem;
+    }
+    .section-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.75rem; letter-spacing: 5px;
+      color: var(--green); text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+    .portfolio-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(4rem, 10vw, 9rem);
+      line-height: 0.9; letter-spacing: -1px;
+    }
+    .portfolio-subtitle {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 1rem; color: var(--grey);
+      letter-spacing: 3px; text-transform: uppercase;
+      margin-top: 1rem;
+    }
+    .portfolio-cta {
+      display: inline-flex; align-items: center; gap: 0.75rem;
+      padding: 1rem 2rem;
+      background: var(--green); color: #000;
+      text-decoration: none;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700; font-size: 0.9rem;
+      letter-spacing: 3px; text-transform: uppercase;
+      clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+      transition: all 0.3s; white-space: nowrap;
+    }
+    .portfolio-cta:hover {
+      background: #fff;
+      box-shadow: 0 0 30px rgba(57,255,20,0.4);
+    }
+
+    /* Masonry-style gallery */
+    .gallery-section {
+      padding: 2rem 3rem 5rem;
+      max-width: 1400px; margin: 0 auto;
+    }
+    .gallery-masonry {
+      columns: 3;
+      column-gap: 1rem;
+    }
+    .gallery-item {
+      break-inside: avoid;
+      margin-bottom: 1rem;
+      position: relative;
+      overflow: hidden;
+      display: block;
+    }
+    .gallery-item img {
+      width: 100%; display: block;
+      transition: transform 0.6s ease;
+      filter: brightness(0.9) saturate(0.9);
+    }
+    .gallery-item:hover img {
+      transform: scale(1.05);
+      filter: brightness(1) saturate(1.1);
+    }
+    .gallery-overlay {
+      position: absolute; inset: 0;
+      background: rgba(8,8,8,0);
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.4s;
+    }
+    .gallery-item:hover .gallery-overlay {
+      background: rgba(8,8,8,0.4);
+    }
+    .overlay-icon {
+      font-size: 2rem; opacity: 0;
+      transform: scale(0.5);
+      transition: all 0.4s;
+    }
+    .gallery-item:hover .overlay-icon {
+      opacity: 1; transform: scale(1);
+    }
+    .gallery-caption {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      padding: 1.5rem 1rem 0.75rem;
+      background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.85rem; letter-spacing: 2px;
+      text-transform: uppercase; color: #ccc;
+      transform: translateY(100%);
+      transition: transform 0.4s;
+    }
+    .gallery-item:hover .gallery-caption { transform: translateY(0); }
+
+    /* Lightbox override */
+    .lb-overlay { background: rgba(0,0,0,0.97) !important; }
+
+    footer {
+      background: #000;
+      border-top: 1px solid rgba(57,255,20,0.1);
+      padding: 2rem 3rem;
+      display: flex; align-items: center;
+      justify-content: space-between; flex-wrap: wrap; gap: 1rem;
+    }
+    footer p { color: var(--grey); font-size: 0.8rem; letter-spacing: 1px; }
+    footer a { color: var(--green); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+    .footer-brand {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.5rem; letter-spacing: 3px;
+    }
+
+    @media (max-width: 768px) {
+      nav { height: 80px; padding: 0 1.5rem; }
+      .logo img { height: 60px; }
+      .nav-toggle-label { display: flex; }
+      ul.nav-menu {
+        position: absolute; top: 80px; left: 0;
+        width: 100%; background: rgba(8,8,8,0.98);
+        flex-direction: column; align-items: center;
+        overflow: hidden; max-height: 0;
+        transition: max-height 0.4s; gap: 0; padding: 0;
+      }
+      ul.nav-menu li { padding: 1rem 0; width: 100%; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
+      .nav-toggle:checked ~ ul.nav-menu { max-height: 300px; }
+      .portfolio-hero { grid-template-columns: 1fr; padding: 3rem 1.5rem 2rem; }
+      .gallery-section { padding: 1.5rem; }
+      .gallery-masonry { columns: 2; }
+      footer { flex-direction: column; text-align: center; }
+    }
+    @media (max-width: 480px) {
+      .gallery-masonry { columns: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div id="cursor"></div>
+
+  <nav>
+    <div class="nav-inner">
+      <div class="logo"><img src="img/logo.png" alt="Razr Barbershop Logo"></div>
+      <input type="checkbox" id="nav-toggle" class="nav-toggle">
+      <label for="nav-toggle" class="nav-toggle-label"><span></span></label>
+      <ul class="nav-menu">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="portfolio.html">Portfolio</a></li>
+        <li><a href="index.html#reviews">Reviews</a></li>
+        <li><a href="contact.html">Contact</a></li>
+        <li><a href="afspraak.html">Afspraak maken</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main>
+    <div class="portfolio-hero" data-aos="fade-up">
+      <div>
+        <div class="section-label">Onze klanten, onze kunst</div>
+        <h1 class="portfolio-title">PORT<br>FOLIO</h1>
+        <p class="portfolio-subtitle">Stijl · Skills · Passie</p>
+      </div>
+      <a href="afspraak.html" class="portfolio-cta">Plan jouw look →</a>
+    </div>
+
+    <div class="gallery-section">
+      <div class="gallery-masonry" id="galleryMasonry"></div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="footer-brand">RAZR</div>
+    <p>&copy; 2025 RAZR Barbershop — Cut different 💈 Build by <a href="https://cortech.be" target="_blank" rel="noopener noreferrer">cortech</a></p>
+    <div style="display:flex; gap:1.5rem;">
+      <a href="index.html" style="color:var(--grey); font-size:0.8rem; text-decoration:none; letter-spacing:1px;">Home</a>
+      <a href="contact.html" style="color:var(--grey); font-size:0.8rem; text-decoration:none; letter-spacing:1px;">Contact</a>
+      <a href="afspraak.html" style="color:var(--grey); font-size:0.8rem; text-decoration:none; letter-spacing:1px;">Afspraak</a>
+    </div>
+  </footer>
+
+  <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/js/lightbox.min.js"></script>
+  <script>
+    // Vaste basisfoto's (altijd zichtbaar, ook zonder admin uploads)
+    const BASE_PHOTOS = [
+      { src: 'img/klant1.jpg', title: 'Classic Cut',    tag: 'Classic Cut'   },
+      { src: 'img/klant2.jpg', title: 'Fade Mastery',   tag: 'Fade Mastery'  },
+      { src: 'img/klant3.jpg', title: 'Curly Top Fade', tag: 'Curly Top'     },
+      { src: 'img/klant4.jpg', title: 'Skin Fade',      tag: 'Skin Fade'     },
+    ];
+
+    function buildGallery() {
+      const container = document.getElementById('galleryMasonry');
+      container.innerHTML = '';
+
+      // Admin-foto's uit localStorage ophalen
+      let adminPhotos = [];
+      try {
+        adminPhotos = JSON.parse(localStorage.getItem('razr_portfolio') || '[]');
+      } catch (e) { adminPhotos = []; }
+
+      // Basisfoto's altijd eerst, daarna admin-uploads
+      const all = [...BASE_PHOTOS, ...adminPhotos];
+
+      all.forEach((photo, i) => {
+        const src   = photo.src;
+        const title = photo.title || '';
+        const delay = (i % 4) * 100;
+
+        const a = document.createElement('a');
+        a.href = src;
+        a.setAttribute('data-lightbox', 'galerij');
+        a.setAttribute('data-title', title);
+        a.className = 'gallery-item';
+        a.setAttribute('data-aos', 'fade-up');
+        a.setAttribute('data-aos-delay', delay);
+        a.innerHTML = `
+          <img src="${src}" alt="${title}" loading="lazy">
+          <div class="gallery-overlay"><div class="overlay-icon">🔍</div></div>
+          <div class="gallery-caption">${title}</div>
+        `;
+        container.appendChild(a);
+      });
+
+      // AOS opnieuw initialiseren zodat nieuwe items ook animeren
+      if (window.AOS) AOS.refreshHard();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      buildGallery();
+      AOS.init({ duration: 800, once: true });
+      window.scrollTo({ top: 0, behavior: 'instant' });
+
+      const cursor = document.getElementById('cursor');
+      document.addEventListener('mousemove', e => {
+        cursor.style.left = e.clientX + 'px';
+        cursor.style.top = e.clientY + 'px';
+      });
+      document.querySelectorAll('a, button').forEach(el => {
+        el.addEventListener('mouseenter', () => cursor.classList.add('big'));
+        el.addEventListener('mouseleave', () => cursor.classList.remove('big'));
+      });
+    });
+  </script>
+</body>
+</html>

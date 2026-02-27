@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Razr Barbershop — Contact</title>
+  <link rel="icon" href="img/favicon.ico" type="image/x-icon" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;600;700&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://unpkg.com/aos@next/dist/aos.css" rel="stylesheet"/>
+
+  <style>
+    :root {
+      --green: #39ff14;
+      --red: #ff0055;
+      --dark: #080808;
+      --dark2: #0f0f0f;
+      --dark3: #1a1a1a;
+      --grey: #888;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Barlow', sans-serif;
+      background: var(--dark); color: #fff;
+      overflow-x: hidden; min-height: 100vh;
+      display: flex; flex-direction: column;
+    }
+    body { cursor: none; }
+    #cursor {
+      width: 12px; height: 12px;
+      background: var(--green); border-radius: 50%;
+      position: fixed; pointer-events: none;
+      z-index: 9999; transform: translate(-50%, -50%);
+      transition: width 0.2s, height 0.2s;
+      mix-blend-mode: exclusion;
+    }
+    #cursor.big { width: 40px; height: 40px; }
+
+    nav {
+      position: fixed; top: 0; left: 0;
+      width: 100%; height: 90px;
+      display: flex; align-items: center;
+      padding: 0 3rem;
+      background: rgba(8,8,8,0.9);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(57,255,20,0.08);
+      z-index: 100;
+    }
+    .nav-inner {
+      position: relative; width: 100%;
+      max-width: 1400px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo img { height: 65px; object-fit: contain; }
+    .logo { position: absolute; left: 50%; transform: translateX(-50%); }
+    .nav-toggle { display: none; }
+    .nav-toggle-label {
+      display: none; margin-left: auto;
+      cursor: pointer; width: 30px; height: 20px;
+      flex-direction: column; justify-content: space-between;
+    }
+    .nav-toggle-label span,
+    .nav-toggle-label span::before,
+    .nav-toggle-label span::after {
+      display: block; background: #fff;
+      height: 2px; border-radius: 2px;
+      position: relative;
+    }
+    .nav-toggle-label span::before,
+    .nav-toggle-label span::after { content: ''; width: 100%; position: absolute; }
+    .nav-toggle-label span::before { top: -8px; }
+    .nav-toggle-label span::after { top: 8px; }
+    ul.nav-menu { display: flex; gap: 2.5rem; list-style: none; }
+    ul.nav-menu li a {
+      color: #aaa; text-decoration: none;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 600; font-size: 0.85rem;
+      text-transform: uppercase; letter-spacing: 2px;
+      position: relative; transition: color 0.3s;
+    }
+    ul.nav-menu li a::after {
+      content: ''; position: absolute;
+      bottom: -4px; left: 0; width: 0; height: 1px;
+      background: var(--green); transition: width 0.3s;
+    }
+    ul.nav-menu li a:hover { color: #fff; }
+    ul.nav-menu li a:hover::after { width: 100%; }
+
+    main { flex: 1; padding-top: 90px; }
+
+    .contact-hero {
+      padding: 5rem 3rem 4rem;
+      max-width: 1200px; margin: 0 auto;
+    }
+    .section-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.75rem; letter-spacing: 5px;
+      color: var(--green); text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+    .page-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(4rem, 10vw, 8rem);
+      line-height: 0.9; margin-bottom: 3rem;
+    }
+
+    .contact-layout {
+      max-width: 1200px; margin: 0 auto;
+      padding: 0 3rem 5rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem; align-items: start;
+    }
+
+    /* FORM */
+    .form-group { margin-bottom: 1.5rem; }
+    .form-group label {
+      display: block;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.75rem; letter-spacing: 3px;
+      text-transform: uppercase; color: var(--green);
+      margin-bottom: 0.5rem;
+    }
+    .form-group input,
+    .form-group textarea {
+      width: 100%; padding: 0.9rem 1rem;
+      background: var(--dark2);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: #fff; font-family: 'Barlow', sans-serif;
+      font-size: 0.95rem;
+      transition: border-color 0.3s, box-shadow 0.3s;
+      outline: none;
+    }
+    .form-group input:focus,
+    .form-group textarea:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 15px rgba(57,255,20,0.1);
+    }
+    .form-group textarea { resize: vertical; min-height: 140px; }
+    .btn-submit {
+      width: 100%;
+      padding: 1rem;
+      background: var(--green); color: #000;
+      border: none; font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700; font-size: 0.9rem;
+      letter-spacing: 3px; text-transform: uppercase;
+      clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .btn-submit:hover {
+      background: #fff;
+      box-shadow: 0 0 30px rgba(57,255,20,0.4);
+    }
+
+    /* INFO SIDE */
+    .info-item {
+      margin-bottom: 2.5rem;
+      padding-bottom: 2.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .info-item:last-child { border-bottom: none; }
+    .info-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.7rem; letter-spacing: 4px;
+      text-transform: uppercase; color: var(--green);
+      margin-bottom: 0.5rem;
+    }
+    .info-value {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.6rem; letter-spacing: 1px;
+    }
+    .info-value a {
+      color: #fff; text-decoration: none;
+      transition: color 0.3s;
+    }
+    .info-value a:hover { color: var(--green); }
+    .info-sub { color: var(--grey); font-size: 0.85rem; margin-top: 0.25rem; }
+
+    .whatsapp-btn {
+      display: inline-flex; align-items: center; gap: 0.75rem;
+      padding: 0.9rem 1.5rem;
+      background: #25D366; color: #fff;
+      text-decoration: none;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700; font-size: 0.85rem;
+      letter-spacing: 2px; text-transform: uppercase;
+      transition: opacity 0.3s; margin-top: 0.5rem;
+    }
+    .whatsapp-btn:hover { opacity: 0.85; }
+
+    footer {
+      background: #000;
+      border-top: 1px solid rgba(57,255,20,0.1);
+      padding: 2rem 3rem;
+      display: flex; align-items: center;
+      justify-content: space-between; flex-wrap: wrap; gap: 1rem;
+    }
+    footer p { color: var(--grey); font-size: 0.8rem; letter-spacing: 1px; }
+    footer a { color: var(--green); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+    .footer-brand { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; letter-spacing: 3px; }
+
+    @media (max-width: 768px) {
+      nav { height: 80px; padding: 0 1.5rem; }
+      .logo img { height: 60px; }
+      .nav-toggle-label { display: flex; }
+      ul.nav-menu {
+        position: absolute; top: 80px; left: 0;
+        width: 100%; background: rgba(8,8,8,0.98);
+        flex-direction: column; align-items: center;
+        overflow: hidden; max-height: 0;
+        transition: max-height 0.4s; gap: 0; padding: 0;
+      }
+      ul.nav-menu li { padding: 1rem 0; width: 100%; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
+      .nav-toggle:checked ~ ul.nav-menu { max-height: 300px; }
+      .contact-hero { padding: 3rem 1.5rem 2rem; }
+      .contact-layout { grid-template-columns: 1fr; padding: 0 1.5rem 4rem; gap: 3rem; }
+      footer { flex-direction: column; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+  <div id="cursor"></div>
+
+  <nav>
+    <div class="nav-inner">
+      <div class="logo"><img src="img/logo.png" alt="Razr Barbershop Logo"></div>
+      <input type="checkbox" id="nav-toggle" class="nav-toggle">
+      <label for="nav-toggle" class="nav-toggle-label"><span></span></label>
+      <ul class="nav-menu">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="portfolio.html">Portfolio</a></li>
+        <li><a href="index.html#reviews">Reviews</a></li>
+        <li><a href="contact.html">Contact</a></li>
+        <li><a href="afspraak.html">Afspraak maken</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main>
+    <div class="contact-hero" data-aos="fade-up">
+      <div class="section-label">Neem contact op</div>
+      <h1 class="page-title">Contact</h1>
+    </div>
+
+    <div class="contact-layout">
+      <div data-aos="fade-right">
+        <form id="contactForm">
+          <div class="form-group">
+            <label for="name">Naam</label>
+            <input type="text" id="name" name="name" placeholder="Jouw naam" required>
+          </div>
+          <div class="form-group">
+            <label for="email">E-mail</label>
+            <input type="email" id="email" name="email" placeholder="Jouw e-mailadres" required>
+          </div>
+          <div class="form-group">
+            <label for="message">Bericht</label>
+            <textarea id="message" name="message" placeholder="Typ hier je bericht..." required></textarea>
+          </div>
+          <button type="submit" class="btn-submit">Verstuur bericht →</button>
+        </form>
+      </div>
+
+      <div data-aos="fade-left">
+        <div class="info-item">
+          <div class="info-label">Adres</div>
+          <div class="info-value">Molsesteenweg 159</div>
+          <div class="info-sub">2490 Balen, België</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Telefoon & WhatsApp</div>
+          <div class="info-value"><a href="tel:+32470305661">+32 470 30 56 61</a></div>
+          <a href="https://wa.me/32470305661?text=Hallo%2C%20ik%20wil%20graag%20een%20afspraak%20maken." class="whatsapp-btn" target="_blank" rel="noopener noreferrer">
+            📱 Chat via WhatsApp
+          </a>
+        </div>
+        <div class="info-item">
+          <div class="info-label">E-mail</div>
+          <div class="info-value" style="font-size:1.1rem;"><a href="mailto:razrbarbershop@hotmail.com">razrbarbershop@hotmail.com</a></div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Openingsuren</div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem 2rem; margin-top:0.5rem;">
+            <span style="color:var(--grey); font-size:0.85rem;">Ma — Vr</span>
+            <span style="color:var(--green); font-size:0.85rem;">Op afspraak</span>
+            <span style="color:var(--grey); font-size:0.85rem;">Zaterdag</span>
+            <span style="color:var(--green); font-size:0.85rem;">Op afspraak</span>
+            <span style="color:var(--grey); font-size:0.85rem;">Zondag</span>
+            <span style="color:#555; font-size:0.85rem;">Gesloten</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="footer-brand">RAZR</div>
+    <p>&copy; 2025 RAZR Barbershop — Cut different 💈 Build by <a href="https://cortech.be" target="_blank" rel="noopener noreferrer">cortech</a></p>
+    <div style="display:flex; gap:1.5rem;">
+      <a href="index.html" style="color:var(--grey); font-size:0.8rem; text-decoration:none; letter-spacing:1px;">Home</a>
+      <a href="portfolio.html" style="color:var(--grey); font-size:0.8rem; text-decoration:none; letter-spacing:1px;">Portfolio</a>
+      <a href="afspraak.html" style="color:var(--grey); font-size:0.8rem; text-decoration:none; letter-spacing:1px;">Afspraak</a>
+    </div>
+  </footer>
+
+  <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      AOS.init({ duration: 800, once: true });
+
+      const cursor = document.getElementById('cursor');
+      document.addEventListener('mousemove', e => {
+        cursor.style.left = e.clientX + 'px';
+        cursor.style.top = e.clientY + 'px';
+      });
+      document.querySelectorAll('a, button').forEach(el => {
+        el.addEventListener('mouseenter', () => cursor.classList.add('big'));
+        el.addEventListener('mouseleave', () => cursor.classList.remove('big'));
+      });
+
+      const form = document.getElementById('contactForm');
+      form.addEventListener('submit', e => {
+        e.preventDefault();
+        const name    = form.name.value.trim();
+        const email   = form.email.value.trim();
+        const message = form.message.value.trim();
+        const subject = encodeURIComponent(`Nieuw bericht van ${name}`);
+        const body    = encodeURIComponent(`Naam: ${name}\nE-mail: ${email}\n\nBericht:\n${message}`);
+        window.location.href = `mailto:razrbarbershop@hotmail.com?subject=${subject}&body=${body}`;
+      });
+    });
+  </script>
+</body>
+</html>

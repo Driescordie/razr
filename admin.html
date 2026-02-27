@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Razr Admin — Toegang verboden</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --green: #39ff14;
+      --red: #ff0055;
+      --dark: #080808;
+      --dark2: #0f0f0f;
+      --dark3: #1a1a1a;
+      --grey: #888;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Barlow', sans-serif;
+      background: var(--dark); color: #fff;
+      min-height: 100vh; overflow-x: hidden;
+    }
+
+    /* ─── MATRIX BACKGROUND ─── */
+    #matrix {
+      position: fixed; inset: 0;
+      z-index: 0; opacity: 0.07;
+    }
+
+    /* ─── LOGIN SCREEN ─── */
+    #loginScreen {
+      position: fixed; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      z-index: 10;
+      background: rgba(8,8,8,0.97);
+    }
+    .login-box {
+      width: 100%; max-width: 420px;
+      padding: 3rem 2.5rem;
+      border: 1px solid rgba(57,255,20,0.2);
+      background: var(--dark2);
+      position: relative;
+      overflow: hidden;
+    }
+    .login-box::before {
+      content: '';
+      position: absolute; top: 0; left: 0;
+      width: 3px; height: 100%;
+      background: var(--green);
+    }
+    .login-scanline {
+      position: absolute; inset: 0;
+      background: repeating-linear-gradient(
+        to bottom,
+        transparent 0px,
+        transparent 3px,
+        rgba(57,255,20,0.01) 3px,
+        rgba(57,255,20,0.01) 4px
+      );
+      pointer-events: none;
+    }
+    .login-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.7rem; letter-spacing: 5px;
+      color: var(--green); text-transform: uppercase;
+      margin-bottom: 0.75rem;
+    }
+    .login-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 3.5rem; line-height: 1;
+      margin-bottom: 0.5rem;
+    }
+    .login-sub {
+      color: var(--grey); font-size: 0.8rem;
+      margin-bottom: 2.5rem; letter-spacing: 1px;
+    }
+    .login-field {
+      position: relative; margin-bottom: 1.25rem;
+    }
+    .login-field label {
+      display: block;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.7rem; letter-spacing: 3px;
+      text-transform: uppercase; color: var(--green);
+      margin-bottom: 0.4rem;
+    }
+    .login-field input {
+      width: 100%; padding: 0.85rem 1rem;
+      background: var(--dark3);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: #fff; font-family: 'Barlow', sans-serif;
+      font-size: 1rem; outline: none;
+      transition: border-color 0.3s;
+      letter-spacing: 3px;
+    }
+    .login-field input:focus { border-color: var(--green); }
+    .login-field input.error { border-color: var(--red); animation: shake 0.4s ease; }
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      25% { transform: translateX(-8px); }
+      75% { transform: translateX(8px); }
+    }
+
+    .attempts-bar {
+      display: flex; gap: 0.4rem; margin-bottom: 1.5rem;
+    }
+    .attempt-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--green);
+      transition: background 0.3s;
+    }
+    .attempt-dot.used { background: var(--red); }
+
+    .btn-login {
+      width: 100%; padding: 0.9rem;
+      background: var(--green); color: #000;
+      border: none; font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700; font-size: 0.9rem;
+      letter-spacing: 3px; text-transform: uppercase;
+      clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+      cursor: pointer; transition: all 0.3s;
+    }
+    .btn-login:hover { background: #fff; }
+    .btn-login:disabled { background: #333; color: #666; cursor: not-allowed; }
+
+    .error-msg {
+      color: var(--red); font-size: 0.8rem;
+      letter-spacing: 1px; margin-top: 0.75rem;
+      min-height: 1.2rem; text-align: center;
+    }
+    .lockout-timer {
+      text-align: center; margin-top: 1rem;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.5rem; color: var(--red);
+      display: none;
+    }
+    .hash-hint {
+      margin-top: 2rem; padding-top: 1.5rem;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      font-size: 0.7rem; color: #444;
+      font-family: 'Barlow Condensed', sans-serif;
+      letter-spacing: 1px; text-align: center;
+    }
+    .hash-hint span { color: #333; word-break: break-all; }
+
+    /* ─── ADMIN DASHBOARD ─── */
+    #adminPanel {
+      display: none;
+      min-height: 100vh;
+    }
+
+    .admin-nav {
+      position: sticky; top: 0;
+      background: rgba(8,8,8,0.95);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(57,255,20,0.1);
+      padding: 0 2rem;
+      display: flex; align-items: center;
+      justify-content: space-between;
+      height: 70px; z-index: 50;
+    }
+    .admin-brand {
+      display: flex; align-items: center; gap: 1rem;
+    }
+    .admin-brand-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.8rem; letter-spacing: 3px;
+    }
+    .admin-badge {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.65rem; letter-spacing: 3px;
+      background: var(--green); color: #000;
+      padding: 0.2rem 0.6rem; text-transform: uppercase;
+    }
+    .btn-logout {
+      padding: 0.5rem 1.25rem;
+      border: 1px solid rgba(255,0,85,0.4);
+      background: transparent; color: var(--red);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 600; font-size: 0.8rem;
+      letter-spacing: 2px; text-transform: uppercase;
+      cursor: pointer; transition: all 0.3s;
+    }
+    .btn-logout:hover { background: var(--red); color: #fff; }
+
+    .admin-main { max-width: 1200px; margin: 0 auto; padding: 3rem 2rem; }
+
+    .admin-header { margin-bottom: 3rem; }
+    .admin-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 3.5rem; line-height: 1; margin-bottom: 0.5rem;
+    }
+    .admin-subtitle { color: var(--grey); font-size: 0.9rem; }
+
+    /* STATS BAR */
+    .stats-row {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 1px; background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.05);
+      margin-bottom: 3rem;
+    }
+    .stat-box {
+      background: var(--dark2); padding: 1.5rem 2rem;
+    }
+    .stat-box-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.5rem; color: var(--green); line-height: 1;
+    }
+    .stat-box-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.7rem; letter-spacing: 3px;
+      text-transform: uppercase; color: var(--grey);
+      margin-top: 0.25rem;
+    }
+
+    /* UPLOAD ZONE */
+    .upload-section { margin-bottom: 3rem; }
+    .section-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.7rem; letter-spacing: 5px;
+      color: var(--green); text-transform: uppercase;
+      margin-bottom: 1.5rem;
+    }
+    .drop-zone {
+      border: 2px dashed rgba(57,255,20,0.3);
+      padding: 3rem 2rem;
+      text-align: center;
+      transition: all 0.3s;
+      cursor: pointer;
+      background: var(--dark2);
+      position: relative;
+    }
+    .drop-zone.dragover {
+      border-color: var(--green);
+      background: rgba(57,255,20,0.03);
+      box-shadow: inset 0 0 30px rgba(57,255,20,0.05);
+    }
+    .drop-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; }
+    .drop-text {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 1.2rem; letter-spacing: 2px;
+      text-transform: uppercase; margin-bottom: 0.5rem;
+    }
+    .drop-sub { color: var(--grey); font-size: 0.8rem; }
+    #fileInput { display: none; }
+
+    .upload-settings {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 1rem; margin-top: 1rem;
+    }
+    .setting-group label {
+      display: block;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.7rem; letter-spacing: 3px;
+      text-transform: uppercase; color: var(--green);
+      margin-bottom: 0.4rem;
+    }
+    .setting-group input, .setting-group select {
+      width: 100%; padding: 0.6rem 0.75rem;
+      background: var(--dark3);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: #fff; font-family: 'Barlow', sans-serif;
+      font-size: 0.9rem; outline: none;
+      transition: border-color 0.3s;
+    }
+    .setting-group input:focus, .setting-group select:focus { border-color: var(--green); }
+    .setting-group select option { background: var(--dark3); }
+
+    /* PREVIEW QUEUE */
+    .preview-queue {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 0.75rem; margin-top: 1.5rem;
+    }
+    .preview-item {
+      position: relative; aspect-ratio: 1;
+      overflow: hidden; background: var(--dark3);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .preview-item img { width: 100%; height: 100%; object-fit: cover; }
+    .preview-remove {
+      position: absolute; top: 4px; right: 4px;
+      width: 22px; height: 22px;
+      background: var(--red); color: #fff;
+      border: none; cursor: pointer;
+      font-size: 0.7rem; display: flex;
+      align-items: center; justify-content: center;
+      opacity: 0; transition: opacity 0.2s;
+    }
+    .preview-item:hover .preview-remove { opacity: 1; }
+
+    .btn-upload-all {
+      display: block; width: 100%; margin-top: 1.5rem;
+      padding: 0.9rem;
+      background: var(--green); color: #000;
+      border: none; font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700; font-size: 0.9rem;
+      letter-spacing: 3px; text-transform: uppercase;
+      clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+      cursor: pointer; transition: all 0.3s;
+    }
+    .btn-upload-all:hover { background: #fff; }
+    .btn-upload-all:disabled { background: #333; color: #666; cursor: not-allowed; }
+
+    /* GALLERY MANAGER */
+    .gallery-manager { }
+    .gallery-toolbar {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;
+    }
+    .gallery-filter {
+      display: flex; gap: 0.5rem; flex-wrap: wrap;
+    }
+    .filter-btn {
+      padding: 0.35rem 0.9rem;
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--grey); cursor: pointer;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.75rem; letter-spacing: 2px;
+      text-transform: uppercase; transition: all 0.2s;
+    }
+    .filter-btn.active, .filter-btn:hover {
+      border-color: var(--green); color: var(--green);
+    }
+    .btn-delete-selected {
+      padding: 0.35rem 0.9rem;
+      background: transparent;
+      border: 1px solid rgba(255,0,85,0.3);
+      color: var(--red); cursor: pointer;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.75rem; letter-spacing: 2px;
+      text-transform: uppercase; transition: all 0.2s;
+      display: none;
+    }
+    .btn-delete-selected:hover { background: var(--red); color: #fff; }
+    .btn-delete-selected.visible { display: block; }
+
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 1rem;
+    }
+    .gallery-card {
+      position: relative; overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.06);
+      background: var(--dark2);
+      cursor: pointer;
+      transition: border-color 0.3s;
+    }
+    .gallery-card.selected { border-color: var(--green); }
+    .gallery-card.selected::after {
+      content: '✓';
+      position: absolute; top: 8px; left: 8px;
+      width: 24px; height: 24px;
+      background: var(--green); color: #000;
+      border-radius: 50%; font-size: 0.8rem;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700;
+    }
+    .gallery-card img {
+      width: 100%; aspect-ratio: 1;
+      object-fit: cover; display: block;
+      transition: transform 0.4s;
+    }
+    .gallery-card:hover img { transform: scale(1.05); }
+    .gallery-card-info {
+      padding: 0.6rem 0.75rem;
+    }
+    .gallery-card-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.8rem; letter-spacing: 1px;
+      text-transform: uppercase; margin-bottom: 0.2rem;
+    }
+    .gallery-card-tag {
+      font-size: 0.7rem; color: var(--green);
+    }
+    .gallery-card-actions {
+      position: absolute; inset: 0;
+      background: rgba(8,8,8,0.7);
+      display: flex; align-items: center; justify-content: center;
+      gap: 0.5rem;
+      opacity: 0; transition: opacity 0.3s;
+    }
+    .gallery-card:hover .gallery-card-actions { opacity: 1; }
+    .card-action-btn {
+      padding: 0.4rem 0.8rem;
+      border: none; cursor: pointer;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.75rem; letter-spacing: 1px;
+      text-transform: uppercase; transition: all 0.2s;
+    }
+    .card-action-btn.delete { background: var(--red); color: #fff; }
+    .card-action-btn.delete:hover { background: #cc0044; }
+
+    .empty-state {
+      text-align: center; padding: 4rem 2rem;
+      color: var(--grey); grid-column: 1/-1;
+    }
+    .empty-state .empty-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.3; }
+    .empty-state p { font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; letter-spacing: 2px; text-transform: uppercase; }
+
+    /* TOAST */
+    #toast {
+      position: fixed; bottom: 2rem; right: 2rem;
+      padding: 0.9rem 1.5rem;
+      background: var(--dark3);
+      border-left: 3px solid var(--green);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.85rem; letter-spacing: 1px;
+      z-index: 999;
+      transform: translateX(120%);
+      transition: transform 0.4s ease;
+      max-width: 300px;
+    }
+    #toast.show { transform: translateX(0); }
+    #toast.error { border-left-color: var(--red); }
+
+    /* CHANGE PW SECTION */
+    .change-pw {
+      margin-top: 3rem; padding-top: 2rem;
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+    .pw-form {
+      display: grid; grid-template-columns: 1fr 1fr auto;
+      gap: 1rem; align-items: end;
+    }
+    .pw-group label {
+      display: block;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.7rem; letter-spacing: 3px;
+      text-transform: uppercase; color: var(--green);
+      margin-bottom: 0.4rem;
+    }
+    .pw-group input {
+      width: 100%; padding: 0.7rem 0.9rem;
+      background: var(--dark3);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: #fff; font-family: 'Barlow', sans-serif;
+      font-size: 0.9rem; outline: none;
+      transition: border-color 0.3s;
+    }
+    .pw-group input:focus { border-color: var(--green); }
+    .btn-change-pw {
+      padding: 0.7rem 1.25rem;
+      background: transparent;
+      border: 1px solid rgba(57,255,20,0.3);
+      color: var(--green); cursor: pointer;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.8rem; letter-spacing: 2px;
+      text-transform: uppercase; transition: all 0.3s;
+      white-space: nowrap;
+    }
+    .btn-change-pw:hover { background: var(--green); color: #000; }
+
+    /* PORTFOLIO INSTRUCTIONS */
+    .instructions {
+      background: var(--dark2);
+      border: 1px solid rgba(57,255,20,0.1);
+      padding: 1.5rem; margin-top: 3rem;
+      font-size: 0.8rem; color: var(--grey);
+      line-height: 1.8;
+    }
+    .instructions strong { color: var(--green); }
+
+    @media (max-width: 768px) {
+      .stats-row { grid-template-columns: 1fr; }
+      .upload-settings { grid-template-columns: 1fr; }
+      .pw-form { grid-template-columns: 1fr; }
+      .gallery-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="matrix"></canvas>
+
+  <!-- ─── LOGIN ─── -->
+  <div id="loginScreen">
+    <div class="login-box">
+      <div class="login-scanline"></div>
+      <div class="login-label">Razr Barbershop</div>
+      <div class="login-title">Admin<br>Toegang</div>
+      <p class="login-sub">Alleen voor geautoriseerd personeel</p>
+
+      <div class="login-field">
+        <label for="pwInput">Wachtwoord</label>
+        <input type="password" id="pwInput" placeholder="••••••••" autocomplete="off" spellcheck="false">
+      </div>
+
+      <div class="attempts-bar" id="attemptsBar">
+        <div class="attempt-dot" id="dot1"></div>
+        <div class="attempt-dot" id="dot2"></div>
+        <div class="attempt-dot" id="dot3"></div>
+        <div class="attempt-dot" id="dot4"></div>
+        <div class="attempt-dot" id="dot5"></div>
+      </div>
+
+      <button class="btn-login" id="loginBtn" onclick="tryLogin()">Toegang verschaffen →</button>
+      <div class="error-msg" id="errorMsg"></div>
+      <div class="lockout-timer" id="lockoutTimer"></div>
+
+      <div class="hash-hint">
+        SHA-256 beveiligd &nbsp;·&nbsp; <span id="hashDisplay">••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── ADMIN PANEL ─── -->
+  <div id="adminPanel">
+    <nav class="admin-nav">
+      <div class="admin-brand">
+        <span class="admin-brand-name">RAZR</span>
+        <span class="admin-badge">Admin Panel</span>
+      </div>
+      <button class="btn-logout" onclick="logout()">Uitloggen ✕</button>
+    </nav>
+
+    <div class="admin-main">
+      <div class="admin-header">
+        <h1 class="admin-title">Portfolio<br>Beheer</h1>
+        <p class="admin-subtitle">Upload, organiseer en verwijder foto's voor je publieke portfolio.</p>
+      </div>
+
+      <!-- STATS -->
+      <div class="stats-row">
+        <div class="stat-box">
+          <div class="stat-box-num" id="statTotal">0</div>
+          <div class="stat-box-label">Totaal foto's</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-box-num" id="statStorage">0 KB</div>
+          <div class="stat-box-label">Opslag gebruikt</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-box-num" id="statSelected">0</div>
+          <div class="stat-box-label">Geselecteerd</div>
+        </div>
+      </div>
+
+      <!-- UPLOAD -->
+      <div class="upload-section">
+        <div class="section-label">Nieuwe foto's uploaden</div>
+        <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+          <div class="drop-icon">📸</div>
+          <div class="drop-text">Sleep foto's hierheen of klik</div>
+          <div class="drop-sub">JPG, PNG, WEBP — max 5MB per foto</div>
+        </div>
+        <input type="file" id="fileInput" multiple accept="image/*">
+
+        <div id="previewQueue" class="preview-queue"></div>
+
+        <div class="upload-settings" id="uploadSettings" style="display:none;">
+          <div class="setting-group">
+            <label>Titel (optioneel)</label>
+            <input type="text" id="batchTitle" placeholder="Classic Cut, Fade, ...">
+          </div>
+          <div class="setting-group">
+            <label>Categorie</label>
+            <select id="batchTag">
+              <option value="Classic Cut">Classic Cut</option>
+              <option value="Fade Mastery">Fade Mastery</option>
+              <option value="Beard Trimming">Beard Trimming</option>
+              <option value="Curly Top">Curly Top</option>
+              <option value="Skin Fade">Skin Fade</option>
+              <option value="Creative Style">Creative Style</option>
+            </select>
+          </div>
+        </div>
+
+        <button class="btn-upload-all" id="uploadBtn" disabled onclick="uploadPhotos()">
+          Foto's opslaan in portfolio →
+        </button>
+      </div>
+
+      <!-- GALLERY MANAGER -->
+      <div class="gallery-manager">
+        <div class="section-label">Huidige portfolio foto's</div>
+        <div class="gallery-toolbar">
+          <div class="gallery-filter">
+            <button class="filter-btn active" onclick="filterGallery('all', this)">Alle</button>
+            <button class="filter-btn" onclick="filterGallery('Classic Cut', this)">Classic Cut</button>
+            <button class="filter-btn" onclick="filterGallery('Fade Mastery', this)">Fade</button>
+            <button class="filter-btn" onclick="filterGallery('Beard Trimming', this)">Beard</button>
+          </div>
+          <button class="btn-delete-selected" id="deleteSelectedBtn" onclick="deleteSelected()">
+            Verwijder geselecteerde (0)
+          </button>
+        </div>
+        <div class="gallery-grid" id="galleryGrid"></div>
+      </div>
+
+      <!-- CHANGE PASSWORD -->
+      <div class="change-pw">
+        <div class="section-label">Wachtwoord wijzigen</div>
+        <div class="pw-form">
+          <div class="pw-group">
+            <label>Huidig wachtwoord</label>
+            <input type="password" id="currentPw" placeholder="••••••••">
+          </div>
+          <div class="pw-group">
+            <label>Nieuw wachtwoord</label>
+            <input type="password" id="newPw" placeholder="Minimaal 8 tekens">
+          </div>
+          <button class="btn-change-pw" onclick="changePassword()">Wijzigen →</button>
+        </div>
+      </div>
+
+      <!-- INSTRUCTIONS -->
+      <div class="instructions">
+        <strong>Hoe werkt dit?</strong><br>
+        Foto's worden rechtstreeks via <strong>upload.php</strong> naar je server geüpload in de map <code>uploads/</code>.
+        De portfolio pagina laadt ze automatisch — <strong>meteen live voor alle bezoekers</strong>, geen export nodig.<br><br>
+        📁 <strong>Installatie:</strong> Zet <code>admin.html</code>, <code>upload.php</code> en <code>portfolio.html</code> in dezelfde map op je hosting. De map <code>uploads/</code> wordt automatisch aangemaakt.<br><br>
+        <strong>Wachtwoord:</strong> Beveiligd via SHA-256 hash. Standaard: <strong>razr2025</strong> — wijzig na eerste login via het formulier hierboven.
+      </div>
+
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <script>
+    // ─── CONFIG ───────────────────────────────
+    const DEFAULT_HASH = '69730d7be5bdac8c7794dfa8a8a905aa449ab7769462ebab72ab746e1f6dfeef';
+    const MAX_ATTEMPTS = 5;
+    const LOCKOUT_SECONDS = 60;
+    const API = 'upload.php';
+
+    let sessionHash = null;
+    let pendingFiles = [];
+    let selectedIds  = new Set();
+    let currentFilter = 'all';
+
+    // ─── MATRIX ───────────────────────────────
+    const canvas = document.getElementById('matrix');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const cols = Math.floor(canvas.width / 20);
+    const drops = Array(cols).fill(1);
+    const chars = 'RAZR01アイウエオカキクケコ▓▒░';
+    function drawMatrix() {
+      ctx.fillStyle = 'rgba(8,8,8,0.04)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#39ff14';
+      ctx.font = '14px monospace';
+      drops.forEach((y, i) => {
+        ctx.fillText(chars[Math.floor(Math.random() * chars.length)], i * 20, y * 20);
+        if (y * 20 > canvas.height && Math.random() > 0.975) drops[i] = 0;
+        drops[i]++;
+      });
+    }
+    let matrixInterval = setInterval(drawMatrix, 50);
+
+    // ─── SHA-256 ──────────────────────────────
+    async function sha256(msg) {
+      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(msg));
+      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+    }
+    function getStoredHash() {
+      return localStorage.getItem('razr_admin_hash') || DEFAULT_HASH;
+    }
+    sha256('razr2025').then(h => {
+      document.getElementById('hashDisplay').textContent = h.substring(0,16) + '...' + h.substring(48);
+    });
+
+    // ─── LOGIN ────────────────────────────────
+    let attempts     = parseInt(localStorage.getItem('razr_attempts') || '0');
+    let lockoutUntil = parseInt(localStorage.getItem('razr_lockout')  || '0');
+
+    function updateDots() {
+      for (let i = 1; i <= MAX_ATTEMPTS; i++)
+        document.getElementById('dot' + i).classList.toggle('used', i <= attempts);
+    }
+    updateDots();
+
+    function checkLockout() {
+      const now = Date.now();
+      if (lockoutUntil > now) {
+        const rem = Math.ceil((lockoutUntil - now) / 1000);
+        document.getElementById('loginBtn').disabled = true;
+        document.getElementById('lockoutTimer').style.display = 'block';
+        document.getElementById('lockoutTimer').textContent = `Geblokkeerd — ${rem}s`;
+        setTimeout(checkLockout, 1000);
+      } else if (lockoutUntil > 0) {
+        lockoutUntil = 0; attempts = 0;
+        localStorage.removeItem('razr_lockout');
+        localStorage.removeItem('razr_attempts');
+        document.getElementById('loginBtn').disabled = false;
+        document.getElementById('lockoutTimer').style.display = 'none';
+        document.getElementById('errorMsg').textContent = '';
+        updateDots();
+      }
+    }
+    checkLockout();
+
+    document.getElementById('pwInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') tryLogin();
+    });
+
+    async function tryLogin() {
+      if (lockoutUntil > Date.now()) return;
+      const pw    = document.getElementById('pwInput').value;
+      const input = document.getElementById('pwInput');
+      if (!pw) { showLoginError('Voer een wachtwoord in'); return; }
+
+      const hash = await sha256(pw);
+      if (hash === getStoredHash()) {
+        sessionHash = hash;
+        attempts = 0;
+        localStorage.removeItem('razr_attempts');
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('adminPanel').style.display = 'block';
+        clearInterval(matrixInterval);
+        loadGallery();
+        showToast('Welkom terug! 👋');
+      } else {
+        attempts++;
+        localStorage.setItem('razr_attempts', attempts);
+        updateDots();
+        input.classList.add('error');
+        setTimeout(() => input.classList.remove('error'), 500);
+        input.value = '';
+        if (attempts >= MAX_ATTEMPTS) {
+          lockoutUntil = Date.now() + LOCKOUT_SECONDS * 1000;
+          localStorage.setItem('razr_lockout', lockoutUntil);
+          showLoginError(`Teveel pogingen. Geblokkeerd voor ${LOCKOUT_SECONDS} seconden.`);
+          checkLockout();
+        } else {
+          showLoginError(`Fout wachtwoord — nog ${MAX_ATTEMPTS - attempts} poging${MAX_ATTEMPTS - attempts !== 1 ? 'en' : ''} over`);
+        }
+      }
+    }
+
+    function showLoginError(msg) {
+      document.getElementById('errorMsg').textContent = msg;
+    }
+
+    function logout() {
+      sessionHash = null;
+      document.getElementById('adminPanel').style.display = 'none';
+      document.getElementById('loginScreen').style.display = 'flex';
+      document.getElementById('pwInput').value = '';
+      matrixInterval = setInterval(drawMatrix, 50);
+    }
+
+    // ─── API HELPERS ──────────────────────────
+    async function apiGet(action) {
+      const res = await fetch(`${API}?action=${action}`);
+      return res.json();
+    }
+    async function apiDelete(id) {
+      const res = await fetch(`${API}?action=delete`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json', 'X-Auth-Token': sessionHash },
+        body: JSON.stringify({ id })
+      });
+      return res.json();
+    }
+
+    // ─── DROP ZONE ────────────────────────────
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', e => {
+      e.preventDefault(); dropZone.classList.remove('dragover');
+      handleFiles(Array.from(e.dataTransfer.files));
+    });
+    fileInput.addEventListener('change', () => handleFiles(Array.from(fileInput.files)));
+
+    function handleFiles(files) {
+      files = files.filter(f => f.type.startsWith('image/') && f.size < 5 * 1024 * 1024);
+      if (!files.length) { showToast('Geen geldige bestanden (max 5MB)', true); return; }
+      pendingFiles = [...pendingFiles, ...files];
+      renderPreviews();
+      document.getElementById('uploadSettings').style.display = 'grid';
+      document.getElementById('uploadBtn').disabled = false;
+    }
+
+    function renderPreviews() {
+      const container = document.getElementById('previewQueue');
+      container.innerHTML = '';
+      pendingFiles.forEach((file, i) => {
+        const reader = new FileReader();
+        reader.onload = e => {
+          const item = document.createElement('div');
+          item.className = 'preview-item';
+          item.innerHTML = `<img src="${e.target.result}" alt=""><button class="preview-remove" onclick="removePending(${i})">✕</button>`;
+          container.appendChild(item);
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function removePending(i) {
+      pendingFiles.splice(i, 1);
+      renderPreviews();
+      if (!pendingFiles.length) {
+        document.getElementById('uploadSettings').style.display = 'none';
+        document.getElementById('uploadBtn').disabled = true;
+      }
+    }
+
+    // ─── UPLOAD NAAR SERVER ───────────────────
+    async function uploadPhotos() {
+      if (!pendingFiles.length) return;
+      const btn   = document.getElementById('uploadBtn');
+      btn.disabled = true;
+      const title = document.getElementById('batchTitle').value.trim();
+      const tag   = document.getElementById('batchTag').value;
+      let done = 0;
+
+      for (const file of pendingFiles) {
+        btn.textContent = `Uploaden (${done + 1}/${pendingFiles.length})...`;
+        const fd = new FormData();
+        fd.append('photo', file);
+        fd.append('title', title || file.name.replace(/\.[^.]+$/, ''));
+        fd.append('tag', tag);
+        try {
+          const res  = await fetch(`${API}?action=upload`, {
+            method: 'POST',
+            headers: { 'X-Auth-Token': sessionHash },
+            body: fd
+          });
+          const data = await res.json();
+          if (data.error) showToast(data.error, true);
+        } catch {
+          showToast('Upload mislukt — controleer of upload.php aanwezig is op je server.', true);
+          break;
+        }
+        done++;
+      }
+
+      pendingFiles = [];
+      document.getElementById('previewQueue').innerHTML = '';
+      document.getElementById('uploadSettings').style.display = 'none';
+      document.getElementById('batchTitle').value = '';
+      btn.textContent = "Foto's opslaan in portfolio →";
+      btn.disabled = true;
+      fileInput.value = '';
+      loadGallery();
+      showToast(`${done} foto('s) live op je website! 🎉`);
+    }
+
+    // ─── GALLERY VAN SERVER ───────────────────
+    async function loadGallery() {
+      document.getElementById('galleryGrid').innerHTML =
+        '<div class="empty-state"><div class="empty-icon">⏳</div><p>Laden...</p></div>';
+      try {
+        const data = await apiGet('list');
+        renderGallery(data.photos || []);
+        updateStats(data.photos || []);
+      } catch {
+        document.getElementById('galleryGrid').innerHTML =
+          '<div class="empty-state"><div class="empty-icon">⚠️</div><p>Kan upload.php niet bereiken — staat het bestand op de server?</p></div>';
+      }
+    }
+
+    function filterGallery(filter, btn) {
+      currentFilter = filter;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      loadGallery();
+    }
+
+    function renderGallery(photos) {
+      const filtered = currentFilter === 'all' ? photos : photos.filter(p => p.tag === currentFilter);
+      const grid = document.getElementById('galleryGrid');
+      grid.innerHTML = '';
+      if (!filtered.length) {
+        grid.innerHTML = '<div class="empty-state"><div class="empty-icon">📷</div><p>Nog geen foto\'s geüpload</p></div>';
+        return;
+      }
+      filtered.forEach(photo => {
+        const card = document.createElement('div');
+        card.className = 'gallery-card' + (selectedIds.has(photo.id) ? ' selected' : '');
+        card.innerHTML = `
+          <img src="${photo.src}" alt="${photo.title}" loading="lazy">
+          <div class="gallery-card-info">
+            <div class="gallery-card-title">${photo.title}</div>
+            <div class="gallery-card-tag">${photo.tag}</div>
+          </div>
+          <div class="gallery-card-actions">
+            <button class="card-action-btn delete" onclick="deletePhoto('${photo.id}', event)">Verwijder</button>
+          </div>
+        `;
+        card.addEventListener('click', e => {
+          if (e.target.tagName === 'BUTTON') return;
+          toggleSelect(photo.id, card);
+        });
+        grid.appendChild(card);
+      });
+    }
+
+    function toggleSelect(id, card) {
+      if (selectedIds.has(id)) { selectedIds.delete(id); card.classList.remove('selected'); }
+      else { selectedIds.add(id); card.classList.add('selected'); }
+      updateSelectionUI();
+    }
+
+    function updateSelectionUI() {
+      const count = selectedIds.size;
+      document.getElementById('statSelected').textContent = count;
+      const btn = document.getElementById('deleteSelectedBtn');
+      btn.textContent = `Verwijder geselecteerde (${count})`;
+      btn.classList.toggle('visible', count > 0);
+    }
+
+    async function deletePhoto(id, e) {
+      e.stopPropagation();
+      if (!confirm('Foto verwijderen van de server?')) return;
+      const res = await apiDelete(id);
+      if (res.error) { showToast(res.error, true); return; }
+      selectedIds.delete(id);
+      loadGallery();
+      updateSelectionUI();
+      showToast('Foto verwijderd van server.');
+    }
+
+    async function deleteSelected() {
+      if (!selectedIds.size) return;
+      if (!confirm(`${selectedIds.size} foto('s) van de server verwijderen?`)) return;
+      for (const id of selectedIds) await apiDelete(id);
+      selectedIds.clear();
+      loadGallery();
+      updateSelectionUI();
+      showToast('Geselecteerde foto\'s verwijderd.');
+    }
+
+    // ─── STATS ────────────────────────────────
+    function updateStats(photos) {
+      document.getElementById('statTotal').textContent = photos.length;
+      document.getElementById('statStorage').textContent = photos.length ? photos.length + ' bestanden' : '—';
+    }
+
+    // ─── WACHTWOORD WIJZIGEN ──────────────────
+    async function changePassword() {
+      const currentPw = document.getElementById('currentPw').value;
+      const newPw     = document.getElementById('newPw').value;
+      if (!currentPw || !newPw) { showToast('Vul beide velden in', true); return; }
+      if (newPw.length < 8)     { showToast('Nieuw wachtwoord min. 8 tekens', true); return; }
+      const currentHash = await sha256(currentPw);
+      if (currentHash !== getStoredHash()) { showToast('Huidig wachtwoord is fout!', true); return; }
+      const newHash = await sha256(newPw);
+      localStorage.setItem('razr_admin_hash', newHash);
+      sessionHash = newHash;
+      document.getElementById('currentPw').value = '';
+      document.getElementById('newPw').value = '';
+      showToast('✅ Wachtwoord gewijzigd! Update ook ADMIN_HASH in upload.php naar: ' + newHash);
+    }
+
+    // ─── TOAST ────────────────────────────────
+    function showToast(msg, error = false) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.className = 'show' + (error ? ' error' : '');
+      clearTimeout(toast._t);
+      toast._t = setTimeout(() => toast.className = '', 5000);
+    }
+
+    window.addEventListener('load', () => {
+      if (lockoutUntil > Date.now()) checkLockout();
+    });
+  </script>
+</body>
+</html>

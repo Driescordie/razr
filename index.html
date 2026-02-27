@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <link rel="icon" href="img/favicon.ico" type="image/x-icon" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Razr Barbershop — Cut Different</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;600;700&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://unpkg.com/aos@next/dist/aos.css" rel="stylesheet"/>
+
+  <style>
+    :root {
+      --green: #39ff14;
+      --red: #ff0055;
+      --dark: #080808;
+      --dark2: #0f0f0f;
+      --dark3: #1a1a1a;
+      --grey: #888;
+      --light: #f0f0f0;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Barlow', sans-serif;
+      background: var(--dark);
+      color: #fff;
+      overflow-x: hidden;
+    }
+
+    /* ─── CURSOR ─── */
+    body { cursor: none; }
+    #cursor {
+      width: 12px; height: 12px;
+      background: var(--green);
+      border-radius: 50%;
+      position: fixed;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: width 0.2s, height 0.2s, background 0.2s;
+      mix-blend-mode: exclusion;
+    }
+    #cursor.big { width: 40px; height: 40px; }
+
+    /* ─── NAV ─── */
+    nav {
+      position: fixed; top: 0; left: 0;
+      width: 100%; height: 90px;
+      display: flex; align-items: center;
+      padding: 0 3rem;
+      background: rgba(8,8,8,0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(57,255,20,0.08);
+      z-index: 100;
+      transition: height 0.3s;
+    }
+    nav.scrolled { height: 70px; }
+    .nav-inner {
+      position: relative;
+      width: 100%; max-width: 1400px;
+      margin: 0 auto;
+      display: flex; align-items: center;
+      justify-content: space-between;
+    }
+    .logo img { height: 70px; object-fit: contain; }
+    .logo { position: absolute; left: 50%; transform: translateX(-50%); }
+
+    .nav-toggle { display: none; }
+    .nav-toggle-label {
+      display: none; margin-left: auto;
+      cursor: pointer; width: 30px; height: 20px;
+      flex-direction: column; justify-content: space-between;
+    }
+    .nav-toggle-label span,
+    .nav-toggle-label span::before,
+    .nav-toggle-label span::after {
+      display: block; background: #fff;
+      height: 2px; border-radius: 2px;
+      position: relative; transition: all 0.3s;
+    }
+    .nav-toggle-label span::before,
+    .nav-toggle-label span::after { content: ''; width: 100%; position: absolute; }
+    .nav-toggle-label span::before { top: -8px; }
+    .nav-toggle-label span::after { top: 8px; }
+
+    ul.nav-menu {
+      display: flex; gap: 2.5rem; list-style: none;
+    }
+    ul.nav-menu li a {
+      color: #aaa; text-decoration: none;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 600; font-size: 0.85rem;
+      text-transform: uppercase; letter-spacing: 2px;
+      position: relative; transition: color 0.3s;
+    }
+    ul.nav-menu li a::after {
+      content: '';
+      position: absolute; bottom: -4px; left: 0;
+      width: 0; height: 1px;
+      background: var(--green);
+      transition: width 0.3s;
+    }
+    ul.nav-menu li a:hover { color: #fff; }
+    ul.nav-menu li a:hover::after { width: 100%; }
+
+    /* ─── HERO ─── */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+    }
+    .hero-bg {
+      position: absolute; inset: 0;
+      background: url('img/barbershop.png') center center / cover no-repeat;
+      transform: scale(1.05);
+      transition: transform 10s ease;
+    }
+    .hero-bg.zoomed { transform: scale(1); }
+    .hero-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(8,8,8,0.92) 0%, rgba(8,8,8,0.6) 50%, rgba(8,8,8,0.92) 100%);
+    }
+    .hero-content {
+      position: relative; z-index: 2;
+      text-align: center;
+      padding: 0 2rem;
+    }
+    .hero-eyebrow {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.8rem; letter-spacing: 5px;
+      color: var(--green); text-transform: uppercase;
+      margin-bottom: 1.5rem;
+      display: flex; align-items: center; justify-content: center; gap: 1rem;
+    }
+    .hero-eyebrow::before, .hero-eyebrow::after {
+      content: ''; display: block;
+      width: 40px; height: 1px; background: var(--green);
+    }
+    .hero-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(5rem, 15vw, 14rem);
+      line-height: 0.85;
+      letter-spacing: -2px;
+      background: linear-gradient(180deg, #fff 0%, #555 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.5rem;
+    }
+    .hero-subtitle {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: clamp(1rem, 3vw, 1.8rem);
+      letter-spacing: 8px; text-transform: uppercase;
+      color: var(--grey); margin-bottom: 3rem;
+    }
+    .hero-cta-group { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .btn-primary {
+      display: inline-block;
+      padding: 1rem 2.5rem;
+      background: var(--green);
+      color: #000; text-decoration: none;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700; font-size: 0.9rem;
+      letter-spacing: 3px; text-transform: uppercase;
+      clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+      transition: all 0.3s;
+    }
+    .btn-primary:hover {
+      background: #fff;
+      box-shadow: 0 0 30px rgba(57,255,20,0.4);
+      transform: translateY(-2px);
+    }
+    .btn-secondary {
+      display: inline-block;
+      padding: 1rem 2.5rem;
+      border: 1px solid rgba(255,255,255,0.2);
+      color: #fff; text-decoration: none;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 600; font-size: 0.9rem;
+      letter-spacing: 3px; text-transform: uppercase;
+      clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+      transition: all 0.3s;
+    }
+    .btn-secondary:hover {
+      border-color: var(--green); color: var(--green);
+      transform: translateY(-2px);
+    }
+
+    .hero-scroll-hint {
+      position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%);
+      z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+    }
+    .scroll-line {
+      width: 1px; height: 60px;
+      background: linear-gradient(to bottom, var(--green), transparent);
+      animation: scrollDown 2s ease infinite;
+    }
+    @keyframes scrollDown {
+      0% { opacity: 1; transform: scaleY(1) translateY(0); }
+      100% { opacity: 0; transform: scaleY(0.5) translateY(20px); }
+    }
+
+    /* ─── TICKER ─── */
+    .ticker {
+      background: var(--green);
+      padding: 0.75rem 0;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+    .ticker-track {
+      display: inline-flex;
+      animation: ticker 20s linear infinite;
+    }
+    .ticker-item {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.1rem; letter-spacing: 3px;
+      color: #000; padding: 0 2rem;
+    }
+    .ticker-dot { color: #000; opacity: 0.4; }
+    @keyframes ticker {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    /* ─── SECTION BASE ─── */
+    section { padding: 6rem 2rem; }
+    .section-inner { max-width: 1200px; margin: 0 auto; }
+    .section-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.75rem; letter-spacing: 5px;
+      color: var(--green); text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+    .section-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(3rem, 7vw, 6rem);
+      line-height: 1; margin-bottom: 2rem;
+    }
+
+    /* ─── SERVICES ─── */
+    #services { background: var(--dark2); }
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .service-card {
+      background: var(--dark2);
+      padding: 3rem 2.5rem;
+      position: relative;
+      overflow: hidden;
+      transition: background 0.4s;
+    }
+    .service-card::before {
+      content: '';
+      position: absolute; bottom: 0; left: 0;
+      width: 100%; height: 2px;
+      background: var(--green);
+      transform: scaleX(0); transform-origin: left;
+      transition: transform 0.4s;
+    }
+    .service-card:hover { background: var(--dark3); }
+    .service-card:hover::before { transform: scaleX(1); }
+    .service-number {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 4rem; color: rgba(57,255,20,0.08);
+      line-height: 1; margin-bottom: 1rem;
+      transition: color 0.4s;
+    }
+    .service-card:hover .service-number { color: rgba(57,255,20,0.2); }
+    .service-card h3 {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 1.5rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 2px;
+      margin-bottom: 0.75rem;
+    }
+    .service-card p {
+      color: var(--grey); font-size: 0.9rem; line-height: 1.7;
+    }
+
+    /* ─── PRICING ─── */
+    #pricing { background: var(--dark); }
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem; margin-top: 3rem;
+    }
+    .pricing-card {
+      position: relative;
+      border: 1px solid rgba(255,255,255,0.08);
+      padding: 3rem 2rem;
+      text-align: center;
+      overflow: hidden;
+      transition: all 0.4s;
+    }
+    .pricing-card.featured {
+      border-color: var(--green);
+    }
+    .pricing-card.featured::before {
+      content: 'POPULAIR';
+      position: absolute; top: 1rem; right: -2rem;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.7rem; letter-spacing: 3px;
+      background: var(--green); color: #000;
+      padding: 0.3rem 3rem;
+      transform: rotate(45deg);
+    }
+    .pricing-card:hover {
+      border-color: var(--green);
+      transform: translateY(-5px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    }
+    .price-amount {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 5rem; color: var(--green);
+      line-height: 1;
+    }
+    .price-currency { font-size: 2rem; vertical-align: super; }
+    .price-name {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 1.3rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 2px;
+      margin: 1rem 0 0.5rem;
+    }
+    .price-desc { color: var(--grey); font-size: 0.85rem; }
+    .price-divider {
+      width: 40px; height: 1px;
+      background: rgba(255,255,255,0.1);
+      margin: 1.5rem auto;
+    }
+
+    /* ─── STATS ─── */
+    #stats {
+      background: var(--green);
+      padding: 4rem 2rem;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2rem;
+      max-width: 1000px; margin: 0 auto;
+      text-align: center;
+    }
+    .stat-number {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 5rem; color: #000; line-height: 1;
+    }
+    .stat-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.8rem; letter-spacing: 3px;
+      text-transform: uppercase; color: rgba(0,0,0,0.6);
+    }
+
+    /* ─── GOOGLE REVIEWS ─── */
+    #reviews { background: var(--dark2); }
+    .reviews-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 3rem; flex-wrap: wrap; gap: 1rem; }
+    .google-badge {
+      display: flex; align-items: center; gap: 0.75rem;
+      padding: 0.75rem 1.5rem;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .google-badge .g-logo { font-size: 1.5rem; font-weight: 900; }
+    .g-blue { color: #4285F4; }
+    .g-red { color: #EA4335; }
+    .g-yellow { color: #FBBC05; }
+    .g-green { color: #34A853; }
+    .badge-info strong {
+      display: block; font-size: 1.2rem; font-weight: 700;
+    }
+    .badge-info span { font-size: 0.75rem; color: var(--grey); }
+    .stars-display {
+      color: #FFD700; font-size: 1.1rem; letter-spacing: 2px;
+    }
+
+    .reviews-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+    .review-card {
+      background: var(--dark3);
+      border: 1px solid rgba(255,255,255,0.06);
+      padding: 2rem;
+      position: relative;
+      transition: all 0.3s;
+    }
+    .review-card:hover {
+      border-color: rgba(57,255,20,0.2);
+      transform: translateY(-3px);
+    }
+    .review-card::before {
+      content: '"';
+      position: absolute; top: -0.5rem; left: 1.5rem;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 5rem; color: var(--green);
+      opacity: 0.15; line-height: 1;
+    }
+    .review-stars { color: #FFD700; font-size: 0.9rem; margin-bottom: 1rem; }
+    .review-text {
+      color: #bbb; font-size: 0.9rem; line-height: 1.7;
+      margin-bottom: 1.5rem; font-style: italic;
+    }
+    .review-author {
+      display: flex; align-items: center; gap: 0.75rem;
+    }
+    .review-avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--green), #0fff5c);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.8rem; color: #000;
+      font-family: 'Barlow Condensed', sans-serif;
+      letter-spacing: 1px;
+    }
+    .review-name { font-weight: 600; font-size: 0.85rem; }
+    .review-date { font-size: 0.75rem; color: var(--grey); }
+    .reviews-cta {
+      text-align: center; margin-top: 3rem;
+    }
+    .btn-google {
+      display: inline-flex; align-items: center; gap: 0.75rem;
+      padding: 0.9rem 2rem;
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #fff; text-decoration: none;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 600; font-size: 0.9rem;
+      letter-spacing: 2px; text-transform: uppercase;
+      transition: all 0.3s;
+    }
+    .btn-google:hover {
+      border-color: #4285F4;
+      color: #4285F4;
+    }
+
+    /* ─── CONTACT ─── */
+    #contact { background: var(--dark); }
+    .contact-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: start;
+    }
+    .contact-info-item {
+      display: flex; align-items: flex-start; gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .contact-icon {
+      width: 44px; height: 44px;
+      border: 1px solid rgba(57,255,20,0.3);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; flex-shrink: 0;
+    }
+    .contact-detail strong {
+      display: block; font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.75rem; letter-spacing: 3px; text-transform: uppercase;
+      color: var(--green); margin-bottom: 0.25rem;
+    }
+    .contact-detail span, .contact-detail a {
+      color: #ccc; font-size: 0.9rem;
+      text-decoration: none; transition: color 0.2s;
+    }
+    .contact-detail a:hover { color: #fff; }
+    .insta-link {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      background: linear-gradient(135deg, #E1306C, #833AB4, #F77737);
+      color: #fff; text-decoration: none;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 600; font-size: 0.85rem;
+      letter-spacing: 2px; text-transform: uppercase;
+      margin-top: 0.5rem;
+      transition: opacity 0.3s;
+    }
+    .insta-link:hover { opacity: 0.85; }
+
+    /* ─── FOOTER ─── */
+    footer {
+      background: #000;
+      border-top: 1px solid rgba(57,255,20,0.1);
+      padding: 2rem 3rem;
+      display: flex; align-items: center;
+      justify-content: space-between; flex-wrap: wrap; gap: 1rem;
+    }
+    footer p {
+      color: var(--grey); font-size: 0.8rem; letter-spacing: 1px;
+    }
+    footer a { color: var(--green); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+    .footer-brand {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.5rem; letter-spacing: 3px;
+    }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 1024px) {
+      .reviews-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 768px) {
+      nav { height: 80px; padding: 0 1.5rem; }
+      .logo img { height: 60px; }
+      .nav-toggle-label { display: flex; }
+      ul.nav-menu {
+        position: absolute; top: 80px; left: 0;
+        width: 100%; background: rgba(8,8,8,0.98);
+        flex-direction: column; align-items: center;
+        overflow: hidden; max-height: 0;
+        transition: max-height 0.4s ease;
+        gap: 0; padding: 0;
+      }
+      ul.nav-menu li { padding: 1rem 0; width: 100%; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
+      .nav-toggle:checked ~ ul.nav-menu { max-height: 300px; }
+      .hero { padding-top: 80px; }
+      .services-grid, .pricing-grid { grid-template-columns: 1fr; }
+      .stats-grid { grid-template-columns: repeat(3, 1fr); }
+      .reviews-grid { grid-template-columns: 1fr; }
+      .contact-grid { grid-template-columns: 1fr; gap: 2rem; }
+      .reviews-header { flex-direction: column; align-items: flex-start; }
+      footer { flex-direction: column; text-align: center; }
+    }
+    @media (max-width: 480px) {
+      .stats-grid { grid-template-columns: 1fr; }
+      section { padding: 4rem 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Custom Cursor -->
+  <div id="cursor"></div>
+
+  <nav id="navbar">
+    <div class="nav-inner">
+      <div class="logo">
+        <img src="img/logo.png" alt="Razr Barbershop Logo">
+      </div>
+      <input type="checkbox" id="nav-toggle" class="nav-toggle">
+      <label for="nav-toggle" class="nav-toggle-label"><span></span></label>
+      <ul class="nav-menu">
+        <li><a href="#home">Home</a></li>
+        <li><a href="portfolio.html">Portfolio</a></li>
+        <li><a href="#reviews">Reviews</a></li>
+        <li><a href="contact.html">Contact</a></li>
+        <li><a href="afspraak.html">Afspraak maken</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section id="home" class="hero" style="padding:0;">
+    <div class="hero-bg" id="heroBg"></div>
+    <div class="hero-overlay"></div>
+    <div class="hero-content" data-aos="fade-up" data-aos-duration="1200">
+      <div class="hero-eyebrow">Est. 2023 — Balen, België</div>
+      <h1 class="hero-title">RAZR</h1>
+      <p class="hero-subtitle">Barbershop — Cut Different</p>
+      <div class="hero-cta-group">
+        <a href="afspraak.html" class="btn-primary">Maak afspraak</a>
+        <a href="portfolio.html" class="btn-secondary">Bekijk portfolio</a>
+      </div>
+    </div>
+    <div class="hero-scroll-hint">
+      <div class="scroll-line"></div>
+    </div>
+  </section>
+
+  <!-- TICKER -->
+  <div class="ticker">
+    <div class="ticker-track">
+      <span class="ticker-item">Classic Cuts</span><span class="ticker-dot">✦</span>
+      <span class="ticker-item">Fade Mastery</span><span class="ticker-dot">✦</span>
+      <span class="ticker-item">Beard Trimming</span><span class="ticker-dot">✦</span>
+      <span class="ticker-item">Razr Barbershop</span><span class="ticker-dot">✦</span>
+      <span class="ticker-item">Cut Different</span><span class="ticker-dot">✦</span>
+      <span class="ticker-item">Balen Belgium</span><span class="ticker-dot">✦</span>
+      <span class="ticker-item">Est. 2023</span><span class="ticker-dot">✦</span>
+      <!-- duplicate for seamless loop -->
+      <span class="ticker-item">Classic Cuts</span><span class="ticker-dot">✦</span>
+      <span class="ticker-item">Fade Mastery</span><span class="ticker-dot">✦</span>
+      <span class="ticker-item">Beard Trimming</span><span class="ticker-dot">✦</span>
+      <span class="ticker-item">Razr Barbershop</span><span class="ticker-dot">✦</span>
+      <span class="ticker-item">Cut Different</span><span class="ticker-dot">✦</span>
+      <span class="ticker-item">Balen Belgium</span><span class="ticker-dot">✦</span>
+      <span class="ticker-item">Est. 2023</span><span class="ticker-dot">✦</span>
+    </div>
+  </div>
+
+  <!-- SERVICES -->
+  <section id="services">
+    <div class="section-inner">
+      <div class="section-label" data-aos="fade-up">Wat bieden wij aan</div>
+      <h2 class="section-title" data-aos="fade-up" data-aos-delay="100">Onze<br>Diensten</h2>
+      <div class="services-grid" data-aos="fade-up" data-aos-delay="200">
+        <div class="service-card">
+          <div class="service-number">01</div>
+          <h3>Classic Cuts</h3>
+          <p>Retro & modern samengebracht. Elk kapsel is een statement strak, clean en tijdloos vakmanschap.</p>
+        </div>
+        <div class="service-card">
+          <div class="service-number">02</div>
+          <h3>Beard Trimming</h3>
+          <p>Traditie ontmoet luxe. Van stoppels tot volle baard, wij zorgen dat elke draad perfect zit.</p>
+        </div>
+        <div class="service-card">
+          <div class="service-number">03</div>
+          <h3>Fade Mastery</h3>
+          <p>Naadloze overgangen, elk detail telt. Van skin fade tot hoge fade, wij zetten de standaard.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <section id="stats">
+    <div class="stats-grid">
+      <div data-aos="fade-up">
+        <div class="stat-number">500+</div>
+        <div class="stat-label">Tevreden klanten</div>
+      </div>
+      <div data-aos="fade-up" data-aos-delay="100">
+        <div class="stat-number">2+</div>
+        <div class="stat-label">Jaar ervaring</div>
+      </div>
+      <div data-aos="fade-up" data-aos-delay="200">
+        <div class="stat-number">5★</div>
+        <div class="stat-label">Google rating</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section id="pricing">
+    <div class="section-inner">
+      <div class="section-label" data-aos="fade-up">Tarieven</div>
+      <h2 class="section-title" data-aos="fade-up" data-aos-delay="100">Prijslijst</h2>
+      <div class="pricing-grid">
+        <div class="pricing-card" data-aos="fade-up" data-aos-delay="100">
+          <div class="price-amount"><span class="price-currency">€</span>25</div>
+          <div class="price-name">Classic Cut</div>
+          <div class="price-desc">Haircut & Wash</div>
+          <div class="price-divider"></div>
+          <p style="color: var(--grey); font-size:0.85rem; line-height:1.6;">Inclusief wassen & stylen</p>
+        </div>
+        <div class="pricing-card featured" data-aos="fade-up" data-aos-delay="200">
+          <div class="price-amount"><span class="price-currency">€</span>35</div>
+          <div class="price-name">Trimming & Cut</div>
+          <div class="price-desc">Haircut & Beard</div>
+          <div class="price-divider"></div>
+          <p style="color: var(--grey); font-size:0.85rem; line-height:1.6;">Kapsel + baard, de complete look</p>
+        </div>
+        <div class="pricing-card" data-aos="fade-up" data-aos-delay="300">
+          <div class="price-amount"><span class="price-currency">€</span>15</div>
+          <div class="price-name">Trimming Only</div>
+          <div class="price-desc">Beard Only</div>
+          <div class="price-divider"></div>
+          <p style="color: var(--grey); font-size:0.85rem; line-height:1.6;">Snelle & nette baard behandeling</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GOOGLE REVIEWS -->
+  <section id="reviews">
+    <div class="section-inner">
+      <div class="reviews-header">
+        <div>
+          <div class="section-label" data-aos="fade-up">Wat klanten zeggen</div>
+          <h2 class="section-title" data-aos="fade-up" data-aos-delay="100">Google<br>Reviews</h2>
+        </div>
+        <div class="google-badge" data-aos="fade-left">
+          <span class="g-logo">
+            <span class="g-blue">G</span><span class="g-red">o</span><span class="g-yellow">o</span><span class="g-blue">g</span><span class="g-green">l</span><span class="g-red">e</span>
+          </span>
+          <div class="badge-info">
+            <div class="stars-display">★★★★★</div>
+            <strong>5.0 / 5</strong>
+            <span>Gebaseerd op Google Reviews</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="reviews-grid">
+        <div class="review-card" data-aos="fade-up" data-aos-delay="100">
+          <div class="review-stars">★★★★★</div>
+          <p class="review-text">Top barbershop! Echt super tevreden met het resultaat. Snelle service en een zeer vriendelijke barber. Ga zeker terug!</p>
+          <div class="review-author">
+            <div class="review-avatar">AK</div>
+            <div>
+              <div class="review-name">Achraf K.</div>
+              <div class="review-date">2 weken geleden</div>
+            </div>
+          </div>
+        </div>
+        <div class="review-card" data-aos="fade-up" data-aos-delay="200">
+          <div class="review-stars">★★★★★</div>
+          <p class="review-text">Beste barbershop in de buurt zonder twijfel. De fade is altijd perfect en de sfeer is geweldig. Aanrader!</p>
+          <div class="review-author">
+            <div class="review-avatar">MV</div>
+            <div>
+              <div class="review-name">Mehdi V.</div>
+              <div class="review-date">1 maand geleden</div>
+            </div>
+          </div>
+        </div>
+        <div class="review-card" data-aos="fade-up" data-aos-delay="300">
+          <div class="review-stars">★★★★★</div>
+          <p class="review-text">Super goede prijs-kwaliteitverhouding. Baard en haar perfect gedaan. Razr barbershop is echt een aanrader voor iedereen!</p>
+          <div class="review-author">
+            <div class="review-avatar">TJ</div>
+            <div>
+              <div class="review-name">Thomas J.</div>
+              <div class="review-date">3 weken geleden</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="reviews-cta" data-aos="fade-up">
+        <a href="https://www.google.com/maps/search/Razr+Barbershop+Balen" target="_blank" rel="noopener noreferrer" class="btn-google">
+          <span class="g-logo" style="font-size:1rem;">
+            <span class="g-blue">G</span><span class="g-red">o</span><span class="g-yellow">o</span><span class="g-blue">g</span><span class="g-green">l</span><span class="g-red">e</span>
+          </span>
+          Laat een review achter
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact">
+    <div class="section-inner">
+      <div class="section-label" data-aos="fade-up">Vind ons</div>
+      <h2 class="section-title" data-aos="fade-up" data-aos-delay="100">Contact &<br>Locatie</h2>
+      <div class="contact-grid">
+        <div data-aos="fade-right">
+          <div class="contact-info-item">
+            <div class="contact-icon">📍</div>
+            <div class="contact-detail">
+              <strong>Adres</strong>
+              <span>Molsesteenweg 159, 2490 Balen</span>
+            </div>
+          </div>
+          <div class="contact-info-item">
+            <div class="contact-icon">📞</div>
+            <div class="contact-detail">
+              <strong>Telefoon / WhatsApp</strong>
+              <a href="tel:+32470305661">+32 470 30 56 61</a>
+            </div>
+          </div>
+          <div class="contact-info-item">
+            <div class="contact-icon">📧</div>
+            <div class="contact-detail">
+              <strong>E-mail</strong>
+              <a href="mailto:razrbarbershop@hotmail.com">razrbarbershop@hotmail.com</a>
+            </div>
+          </div>
+          <div class="contact-info-item">
+            <div class="contact-icon">📷</div>
+            <div class="contact-detail">
+              <strong>Sociale media</strong>
+              <a href="https://www.instagram.com/razr_barbershop" target="_blank" class="insta-link">
+                &#x1F4F7; @razr_barbershop
+              </a>
+            </div>
+          </div>
+        </div>
+        <div data-aos="fade-left" style="display:flex; flex-direction:column; gap:1.5rem;">
+          <a href="https://wa.me/32470305661?text=Hallo%2C%20ik%20wil%20graag%20een%20afspraak%20maken." target="_blank" rel="noopener noreferrer" class="btn-primary" style="text-align:center; display:block;">
+            📱 Maak afspraak via WhatsApp
+          </a>
+          <a href="contact.html" class="btn-secondary" style="text-align:center; display:block;">
+            ✉️ Stuur een bericht
+          </a>
+          <div style="border:1px solid rgba(255,255,255,0.06); padding:1.5rem;">
+            <div class="section-label" style="margin-bottom:0.75rem;">Openingsuren</div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem 2rem; color:#bbb; font-size:0.85rem;">
+              <span>Ma — Vr</span><span style="color:var(--green);">Op afspraak</span>
+              <span>Zaterdag</span><span style="color:var(--green);">Op afspraak</span>
+              <span>Zondag</span><span style="color:#666;">Gesloten</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-brand">RAZR</div>
+    <p>&copy; 2025 RAZR Barbershop — Cut different 💈 Build by <a href="https://cortech.be" target="_blank" rel="noopener noreferrer">cortech</a></p>
+    <div style="display:flex; gap:1.5rem;">
+      <a href="portfolio.html" style="color:var(--grey); font-size:0.8rem; text-decoration:none; letter-spacing:1px;">Portfolio</a>
+      <a href="contact.html" style="color:var(--grey); font-size:0.8rem; text-decoration:none; letter-spacing:1px;">Contact</a>
+      <a href="afspraak.html" style="color:var(--grey); font-size:0.8rem; text-decoration:none; letter-spacing:1px;">Afspraak</a>
+    </div>
+  </footer>
+
+  <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      AOS.init({ duration: 800, once: true });
+
+      // Cursor
+      const cursor = document.getElementById('cursor');
+      document.addEventListener('mousemove', e => {
+        cursor.style.left = e.clientX + 'px';
+        cursor.style.top = e.clientY + 'px';
+      });
+      document.querySelectorAll('a, button').forEach(el => {
+        el.addEventListener('mouseenter', () => cursor.classList.add('big'));
+        el.addEventListener('mouseleave', () => cursor.classList.remove('big'));
+      });
+
+      // Nav scroll
+      const navbar = document.getElementById('navbar');
+      window.addEventListener('scroll', () => {
+        navbar.classList.toggle('scrolled', window.scrollY > 100);
+      });
+
+      // Hero bg zoom
+      setTimeout(() => {
+        document.getElementById('heroBg').classList.add('zoomed');
+      }, 100);
+    });
+  </script>
+</body>
+</html>
